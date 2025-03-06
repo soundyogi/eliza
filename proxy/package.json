@@ -1,0 +1,17 @@
+{
+    "name": "proxy",
+    "version": "0.25.9",
+    "main": "src/index.ts",
+    "type": "module",
+    "scripts": {
+        "start": "node --loader ts-node/esm src/index.ts",
+        "dev": "node --loader ts-node/esm src/index.ts",
+        "check-types": "tsc --noEmit",
+        "test": "jest"
+    },
+    "dependencies": {
+        "express": "4.21.2",
+        "cors": "2.8.5",
+        "http-proxy-middleware": "3.0.3"
+    }
+}
