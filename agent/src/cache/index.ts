@@ -1,4 +1,4 @@
-import { CacheManager, FsCacheAdapter, DbCacheAdapter } from '@elizaos/core';
+import { CacheManager, FsCacheAdapter, DbCacheAdapter, type Character, type IDatabaseCacheAdapter } from '@elizaos/core';
 import path from 'path';
 
 export function initializeFsCache(baseDir: string, character: Character) {

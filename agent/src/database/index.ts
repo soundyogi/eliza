@@ -1,4 +1,4 @@
-import { IDatabaseAdapter, IDatabaseCacheAdapter } from '@elizaos/core';
+import { type Adapter, AgentRuntime } from '@elizaos/core';
 
 export async function findDatabaseAdapter(runtime: AgentRuntime) {
     const { adapters } = runtime;

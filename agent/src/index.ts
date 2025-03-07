@@ -1,5 +1,13 @@
 import { DirectClient } from "@elizaos/client-direct";
-import { AgentRuntime, elizaLogger, settings, stringToUuid, type Character } from "@elizaos/core";
+import {
+    AgentRuntime,
+    elizaLogger,
+    settings,
+    stringToUuid,
+    type Character,
+    type IDatabaseAdapter,
+    type IDatabaseCacheAdapter,
+} from "@elizaos/core";
 import { bootstrapPlugin } from "@elizaos/plugin-bootstrap";
 import fs from "fs";
 import net from "net";
@@ -12,12 +20,20 @@ import { getTokenForProvider, parseArguments } from "./config/index.ts";
 import { findDatabaseAdapter } from "./database/index.ts";
 import { defaultCharacter } from "./defaultCharacter.ts";
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const wait = (minTime = 1000, maxTime = 3000) => {
     const waitTime = Math.floor(Math.random() * (maxTime - minTime + 1)) + minTime;
     return new Promise((resolve) => setTimeout(resolve, waitTime));
+};
+
+const logFetch = async (url: string, options: any) => {
+    elizaLogger.debug(`Fetching ${url}`);
+    // Disabled to avoid disclosure of sensitive information such as API keys
+    // elizaLogger.debug(JSON.stringify(options, null, 2));
+    return fetch(url, options);
 };
 
 export function createAgent(character: Character, token: string): AgentRuntime {
@@ -78,6 +94,23 @@ const checkPortAvailable = (port: number): Promise<boolean> => {
     });
 };
 
+async function loadCharacters(charactersArg: string): Promise<Character[]> {
+    const characterPaths = charactersArg.split(",");
+    const characters: Character[] = [];
+
+    for (const characterPath of characterPaths) {
+        try {
+            const characterData = fs.readFileSync(characterPath, "utf-8");
+            const character = JSON.parse(characterData) as Character;
+            characters.push(character);
+        } catch (error) {
+            elizaLogger.error(`Error loading character from ${characterPath}:`, error);
+        }
+    }
+
+    return characters;
+}
+
 const startAgents = async () => {
     const directClient = new DirectClient();
     let serverPort = parseInt(settings.SERVER_PORT || "3000");
@@ -114,7 +147,7 @@ const startAgents = async () => {
 
     const isDaemonProcess = process.env.DAEMON_PROCESS === "true";
     if (!isDaemonProcess) {
-        startChatSession(characters);
+        startChatSession(characters)();
     }
 };
 

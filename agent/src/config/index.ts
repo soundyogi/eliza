@@ -1,5 +1,6 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { elizaLogger, type Character, ModelProviderName, settings } from '@elizaos/core';
 
 export function parseArguments() {
     try {

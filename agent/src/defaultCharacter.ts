@@ -1,5 +1,30 @@
 import { type Character, ModelProviderName } from "@elizaos/core";
 
+
+export const defaultCharacter: Character = {
+    name: "Default Character",
+    modelProvider: ModelProviderName.ANTHROPIC,
+    plugins: [],
+    settings: {
+        secrets: {
+            // OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+        },
+    },
+    bio: [],
+    lore: [],
+    messageExamples: [],
+    postExamples: [],
+    topics: [],
+    style: {
+        all: [],
+        chat: [],
+        post: [],
+    },
+    adjectives: [],
+    extends: [],
+};
+
+/*
 export const defaultCharacter: Character = {
     name: "Eliza",
     username: "eliza",
@@ -528,3 +553,4 @@ export const defaultCharacter: Character = {
     ],
     extends: [],
 };
+*/
