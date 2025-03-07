@@ -19,7 +19,6 @@ import {
     stringToUuid,
     validateCharacterConfig,
 } from "@elizaos/core";
-import { defaultCharacter } from "./defaultCharacter.ts";
 
 import { bootstrapPlugin } from "@elizaos/plugin-bootstrap";
 import JSON5 from 'json5';
@@ -30,6 +29,8 @@ import os from "os";
 import path from "path";
 import { fileURLToPath } from "url";
 import yargs from "yargs";
+
+import { defaultCharacter } from "./defaultCharacter.ts";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
