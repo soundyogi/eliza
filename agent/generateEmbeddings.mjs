@@ -1,10 +1,35 @@
-// save as scripts/generate-embeddings.mjs
-import { createClient } from '@supabase/supabase-js';
 
-// Your credentials
-const SUPABASE_URL = "https://ekcvueswdllhabupccoa.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrY3Z1ZXN3ZGxsaGFidXBjY29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyOTExOTMsImV4cCI6MjA1Njg2NzE5M30.ZyQ157FoOOcrtXoHQQPcrmYjEBJZ2F4Qhv8U-lG3Yhw";
-const OPENAI_API_KEY = "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"; // Replace with your OpenAI API key
+// generateEmbeddings.mjs
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import fs from 'fs';
+
+// Load environment variables from .env file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const envPath = join(__dirname, '..', '.env');
+
+console.log("envPath", envPath);
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+} else {
+  dotenv.config();
+}
+
+// Get credentials from environment variables
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// Validate environment variables
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !OPENAI_API_KEY) {
+  console.error('Error: Missing required environment variables. Please check your .env file.');
+  console.error('Required variables: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY');
+  process.exit(1);
+}
 
 async function generateEmbeddings() {
   // Initialize Supabase client
@@ -68,18 +93,22 @@ async function generateEmbeddings() {
       const embedding = data.data[0].embedding;
       
       console.log(`Got embedding with ${embedding.length} dimensions`);
-      
-      // Update document with embedding
-      const { error: updateError } = await supabase
-        .from('knowledge')
-        .update({ embedding })
-        .eq('id', doc.id);
         
-      if (updateError) {
+
         console.error(`Error updating embedding for document ${doc.id}:`, updateError);
-      } else {
-        console.log(`Updated embedding for document ${doc.id}`);
-      }
+        
+        // Fallback to direct update if RPC fails
+        console.log("Trying fallback direct update method...");
+        const { error: fallbackError } = await supabase
+          .from('knowledge')
+          .update({ embedding })
+          .eq('id', doc.id);
+          
+        if (fallbackError) {
+          console.error(`Fallback update also failed for document ${doc.id}:`, fallbackError);
+        } else {
+          console.log(`Successfully updated embedding using fallback method for document ${doc.id}`);
+        }
       
       // Sleep for a short time to avoid rate limits
       await new Promise(resolve => setTimeout(resolve, 500));

@@ -6,11 +6,10 @@ export async function findDatabaseAdapter(runtime: AgentRuntime) {
     // First check if Supabase adapter is already loaded
 
             
-                const supabaseAdapterPlugin = await import('@elizaos-plugins/adapter-supabase');
-                const supabaseAdapterPluginDefault = supabaseAdapterPlugin.default;
-                adapter = supabaseAdapterPluginDefault.adapters[0];
-
-        
+        const supabaseAdapterPlugin = await import('@elizaos-plugins/adapter-supabase');
+        const supabaseAdapterPluginDefault = supabaseAdapterPlugin.default;
+        adapter = supabaseAdapterPluginDefault.adapters[0];
+ 
 
 
     /*
