@@ -8,7 +8,7 @@ export async function findDatabaseAdapter(runtime: AgentRuntime) {
         const sqliteAdapterPluginDefault = sqliteAdapterPlugin.default;
         adapter = sqliteAdapterPluginDefault.adapters[0];
         if (!adapter) {
-            throw new Error("No database adapter found.");
+            throw new Error("Internal error: No database adapter found for default adapter-sqlite");
         }
     } else if (adapters.length === 1) {
         adapter = adapters[0];

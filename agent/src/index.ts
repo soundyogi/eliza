@@ -14,7 +14,6 @@ import { bootstrapPlugin } from "@elizaos/plugin-bootstrap";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
 import { defaultCharacter } from "./defaultCharacter.ts";
 import { initializeCache as initCache } from "./cache/index.ts";
 import { startChatSession } from "./chat/index.ts";
@@ -142,6 +141,8 @@ const startAgents = async () => {
   // Optionally start chat session if not running as daemon.
   const isDaemonProcess = process.env.DAEMON_PROCESS === "true";
   if (!isDaemonProcess) {
+    await wait(10000);
+    console.log("Starting chat session...");
     startChatSession(characters)();
   }
 };

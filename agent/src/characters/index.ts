@@ -43,7 +43,7 @@ export function mergeCharacters(base: Character, child: Character): Character {
 }
 
 export function commaSeparatedStringToArray(commaSeparated: string): string[] {
-  return commaSeparated.split(",").map(s => s.trim());
+  return commaSeparated?.split(",").map(s => s.trim()) || [];
 }
 
 export async function readCharactersFromStorage(characterPaths: string[]): Promise<string[]> {

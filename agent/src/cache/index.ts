@@ -1,4 +1,4 @@
-import { CacheManager, FsCacheAdapter, DbCacheAdapter, type Character, type IDatabaseCacheAdapter } from '@elizaos/core';
+import { CacheManager, FsCacheAdapter, DbCacheAdapter, type Character, type IDatabaseCacheAdapter, CacheStore } from '@elizaos/core';
 import path from 'path';
 
 export function initializeFsCache(baseDir: string, character: Character) {
@@ -30,9 +30,9 @@ export function initializeCache(
     db?: IDatabaseCacheAdapter
 ) {
     switch (cacheStore) {
-        case 'DATABASE':
+        case CacheStore.DATABASE:
             return initializeDbCache(character, db);
-        case 'FILESYSTEM':
+        case CacheStore.FILESYSTEM:
             return initializeFsCache(baseDir, character);
         default:
             throw new Error(
