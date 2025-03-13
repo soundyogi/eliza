@@ -1,10 +1,10 @@
-// save as scripts/generate-embeddings.js
+// save as scripts/generate-embeddings.mjs
 import { createClient } from '@supabase/supabase-js';
 
-// Your credentials (replace with your actual values)
+// Your credentials
 const SUPABASE_URL = "https://ekcvueswdllhabupccoa.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrY3Z1ZXN3ZGxsaGFidXBjY29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyOTExOTMsImV4cCI6MjA1Njg2NzE5M30.ZyQ157FoOOcrtXoHQQPcrmYjEBJZ2F4Qhv8U-lG3Yhw";
-const ANTHROPIC_API_KEY = "YOUR_ANTHROPIC_API_KEY"; // Replace with your actual API key
+const OPENAI_API_KEY = "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"; // Replace with your OpenAI API key
 
 async function generateEmbeddings() {
   // Initialize Supabase client
@@ -25,33 +25,49 @@ async function generateEmbeddings() {
   
   // Process each document
   for (const doc of documents) {
-    const content = typeof doc.content === 'string' 
-      ? doc.content 
-      : JSON.stringify(doc.content);
+    // Extract text content from the document
+    let textContent;
+    try {
+      const content = doc.content;
+      if (typeof content === 'string') {
+        textContent = content;
+      } else if (content.text) {
+        textContent = content.text;
+      } else if (content.title && content.text) {
+        textContent = `${content.title}\n\n${content.text}`;
+      } else {
+        textContent = JSON.stringify(content);
+      }
+    } catch (err) {
+      console.error(`Error extracting text from document ${doc.id}:`, err);
+      continue;
+    }
     
     try {
-      // Generate embedding with Anthropic API using fetch
-      const response = await fetch('https://api.anthropic.com/v1/embeddings', {
+      console.log(`Generating embedding for document ${doc.id}`);
+      
+      // Generate embedding with OpenAI API
+      const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: "claude-3-haiku-20240307",
-          input: content,
-          dimensions: 1536  // Match the vector dimension in your schema
+          model: "text-embedding-3-small",
+          input: textContent
         })
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Anthropic API error: ${JSON.stringify(errorData)}`);
+        const errorData = await response.text();
+        throw new Error(`OpenAI API error: ${errorData}`);
       }
       
       const data = await response.json();
-      const embedding = data.embedding;
+      const embedding = data.data[0].embedding;
+      
+      console.log(`Got embedding with ${embedding.length} dimensions`);
       
       // Update document with embedding
       const { error: updateError } = await supabase
@@ -66,7 +82,7 @@ async function generateEmbeddings() {
       }
       
       // Sleep for a short time to avoid rate limits
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (err) {
       console.error(`Error generating embedding for document ${doc.id}:`, err);
