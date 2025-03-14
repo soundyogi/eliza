@@ -87,39 +87,59 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
     });
     console.log('Knowledge items found:', knowledgeItems.length);
 
-    // In your findDatabaseAdapter function
-try {
-  console.log("Running direct search test...");
-  
-  // Log the agent ID being used
-  console.log("Using agent ID:", runtime.agentId);
-  
-  // Generate embedding for test
-  const testEmbeddingArray = await embed(runtime, "Silver Haired Justin 99");
-  console.log("Generated embedding length:", testEmbeddingArray.length);
-  
-  // Use extremely low threshold
-  const directResults = await runtime.databaseAdapter.searchKnowledge({
-    agentId: runtime.agentId,
-    embedding: new Float32Array(testEmbeddingArray),
-    match_threshold: 0.0001, // Extremely low
-    match_count: 10,      // Very high
-    //searchText: "Silver Haired Justin 99"
-  });
-  
-  console.log(`Direct search results: ${directResults.length} items found`);
-  if (directResults.length > 0) {
-    directResults.forEach((item, index) => {
-      console.log(`Result ${index+1}: similarity=${item.similarity}, text=${item.content.text.substring(0, 50)}...`);
-    });
-  } else {
-    console.log("No results - printing adapter information:");
-    console.log("Adapter type:", runtime.databaseAdapter.constructor.name);
-  }
-} catch (error) {
-  console.error("Error in direct search test:", error);
-  console.error(error.stack);
-}
+    try {
+      console.log("Running direct search test...");
+      
+      // Log the agent ID being used
+      console.log("Using agent ID:", runtime.agentId);
+      
+      // Generate embedding for test
+      const testEmbeddingArray = await embed(runtime, "Silver Haired Justin 99");
+      console.log("Generated embedding length:", testEmbeddingArray.length);
+      
+      
+      // Test 1: With vector search only
+      console.log("\n--- Test 1: Vector search with agentId ---");
+      const directResults = await runtime.databaseAdapter.searchKnowledge({
+        agentId: runtime.agentId,
+        embedding: new Float32Array(testEmbeddingArray),
+        match_threshold: 0.3, // Extremely low
+        match_count: 10,      // Very high
+      });
+      
+      console.log(`Direct search results: ${directResults.length} items found`);
+      if (directResults.length > 0) {
+        directResults.forEach((item, index) => {
+          console.log(item)
+          console.log(`Result ${index+1}: similarity=${item.similarity}, text=${item.content.text.substring(0, 50)}...`);
+        });
+      } else {
+        console.log("No results - trying fallback approach...");
+        
+        // Test 2: Try with null agent ID
+        console.log("\n--- Test 2: Trying with null agentId ---");
+        const nullAgentResults = await runtime.databaseAdapter.searchKnowledge({
+          agentId: null, 
+          embedding: new Float32Array(testEmbeddingArray),
+          match_threshold: 0.3,
+          match_count: 10
+        });
+        
+        if (nullAgentResults.length > 0) {
+          
+          console.log(`Found ${nullAgentResults.length} results with null agentId!`);
+          nullAgentResults.forEach((item, index) => {
+            console.log(item)
+            console.log(`Result ${index+1}: similarity=${item.similarity}, text=${item.content.text.substring(0, 50)}...`);
+          });
+        } 
+      }
+    } catch (error) {
+      console.error("Error in direct search test:", error);
+      console.error(error.stack);
+    }
+
+    // debugKnowledgeSearch(runtime, "Silver Haired Justin 99");
 
     return runtime;
   } catch (error) {
@@ -204,3 +224,91 @@ if (process.env.PREVENT_UNHANDLED_EXIT && parseBooleanFromText(process.env.PREVE
     console.error("unhandledRejection", err);
   });
 }
+
+async function debugKnowledgeSearch(runtime, testQuery) {
+  const knowledgeManager = runtime.ragKnowledgeManager;
+
+  console.log('Debugging Knowledge Search');
+  
+  // Step 1: List all knowledge items
+  const allKnowledge = await knowledgeManager.listAllKnowledge(runtime.agentId);
+  console.log(`Total knowledge items: ${allKnowledge.length}`);
+  
+  // Detailed logging of knowledge items
+  allKnowledge.forEach((item, index) => {
+    console.log(item)
+    console.log(`Item ${index + 1}:`, {
+      id: item.id,
+      agentId: item.agentId,
+      isShared: item.content.metadata?.isShared,
+      text: item.content.text.substring(0, 100) + '...'
+    });
+  });
+
+  // Generate embedding for test query
+  const embeddingArray = await embed(runtime, testQuery);
+  const embedding = new Float32Array(embeddingArray);
+
+
+  // Step 2: Perform searches with different configurations
+  console.log('\n--- Search with Specific Agent ID ---');
+  const resultsWithAgentId = await runtime.databaseAdapter.searchKnowledge({
+    agentId: runtime.agentId,
+    embedding: embedding,
+    match_threshold: 0.0001,
+    match_count: 10
+  });
+  console.log(`Results with agent ID: ${resultsWithAgentId.length}`);
+  resultsWithAgentId.forEach((result, index) => {
+    console.log(`Result ${index + 1}:`, {
+      id: result.id,
+      agentId: result.agentId,
+      similarity: result.similarity,
+      isShared: result.content.metadata?.isShared,
+      textPreview: result.content.text.substring(0, 100) + '...'
+    });
+  });
+
+  console.log('\n--- Search with NULL Agent ID ---');
+  const resultsWithNullAgentId = await runtime.databaseAdapter.searchKnowledge({
+    agentId: null,
+    embedding: embedding,
+    match_threshold: 0.0001,
+    match_count: 10
+  });
+  console.log(`Results with NULL agent ID: ${resultsWithNullAgentId.length}`);
+  resultsWithNullAgentId.forEach((result, index) => {
+    console.log(`Result ${index + 1}:`, {
+      id: result.id,
+      agentId: result.agentId,
+      similarity: result.similarity,
+      isShared: result.content.metadata?.isShared,
+      textPreview: result.content.text.substring(0, 100) + '...'
+    });
+  });
+
+  // Direct database query for verification
+  try {
+    const directResults = await runtime.databaseAdapter.searchKnowledge({
+      agentId: runtime.agentId,
+      embedding: embedding,
+      match_threshold: 0.0001,
+      match_count: 10
+    });
+    console.log('\n--- Direct Database Search with Runtime AgentID ---');
+    console.log(`Results: ${directResults.length}`);
+    directResults.forEach((result, index) => {
+      console.log(`Result ${index + 1}:`, {
+        id: result.id,
+        agentId: result.agentId,
+        similarity: result.similarity,
+        isShared: result.content.metadata?.isShared,
+        textPreview: result.content.text.substring(0, 100) + '...'
+      });
+    });
+  } catch (error) {
+    console.error('Error in direct database search:', error);
+  }
+}
+
+export default debugKnowledgeSearch;

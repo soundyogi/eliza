@@ -1,22 +1,24 @@
-
-// generateEmbeddings.mjs
+// createEmbeddings.mjs
+import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fs from 'fs';
 
-// Load environment variables from .env file
+// Load environment variables
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const envPath = join(__dirname, '..', '.env');
 
-console.log("envPath", envPath);
+console.log("Loading environment from:", envPath);
 
 if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
+  console.log("Loaded .env file from parent directory");
 } else {
   dotenv.config();
+  console.log("Loaded .env from current directory");
 }
 
 // Get credentials from environment variables
@@ -25,17 +27,26 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // Validate environment variables
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !OPENAI_API_KEY) {
-  console.error('Error: Missing required environment variables. Please check your .env file.');
-  console.error('Required variables: SUPABASE_URL, SUPABASE_ANON_KEY, OPENAI_API_KEY');
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Error: Missing required Supabase environment variables.');
   process.exit(1);
 }
 
-async function generateEmbeddings() {
+if (!OPENAI_API_KEY) {
+  console.error('Error: Missing OpenAI API key.');
+  process.exit(1);
+}
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: OPENAI_API_KEY
+});
+
+async function createEmbeddings() {
   // Initialize Supabase client
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
-  // Get knowledge docs without embeddings
+  // Get documents without embeddings
   const { data: documents, error } = await supabase
     .from('knowledge')
     .select('id, content')
@@ -46,7 +57,7 @@ async function generateEmbeddings() {
     return;
   }
     
-  console.log(`Found ${documents.length} documents without embeddings`);
+  console.log(`Found ${documents.length} documents needing embeddings`);
   
   // Process each document
   for (const doc of documents) {
@@ -63,6 +74,13 @@ async function generateEmbeddings() {
       } else {
         textContent = JSON.stringify(content);
       }
+      
+      // Ensure text content isn't too long for the API
+      if (textContent.length > 250000) {
+        console.warn(`Text for document ${doc.id} is very long (${textContent.length} chars). Truncating...`);
+        textContent = textContent.substring(0, 250000);
+      }
+      
     } catch (err) {
       console.error(`Error extracting text from document ${doc.id}:`, err);
       continue;
@@ -70,45 +88,34 @@ async function generateEmbeddings() {
     
     try {
       console.log(`Generating embedding for document ${doc.id}`);
+      console.log(`Text length: ${textContent.length} chars`);
+      console.log(`Text preview: ${textContent.substring(0, 100)}...`);
       
-      // Generate embedding with OpenAI API
-      const response = await fetch('https://api.openai.com/v1/embeddings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "text-embedding-3-small",
-          input: textContent
-        })
+      // Generate embedding with OpenAI API using the official library
+      const embeddingResponse = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: textContent
       });
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`OpenAI API error: ${errorData}`);
-      }
-      
-      const data = await response.json();
-      const embedding = data.data[0].embedding;
+      // Extract the embedding
+      const embedding = embeddingResponse.data[0].embedding;
       
       console.log(`Got embedding with ${embedding.length} dimensions`);
-        
-
-        console.error(`Error updating embedding for document ${doc.id}:`, updateError);
-        
-        // Fallback to direct update if RPC fails
-        console.log("Trying fallback direct update method...");
-        const { error: fallbackError } = await supabase
-          .from('knowledge')
-          .update({ embedding })
-          .eq('id', doc.id);
-          
-        if (fallbackError) {
-          console.error(`Fallback update also failed for document ${doc.id}:`, fallbackError);
-        } else {
-          console.log(`Successfully updated embedding using fallback method for document ${doc.id}`);
-        }
+      
+      // Convert embedding to PostgreSQL vector format
+      const formattedEmbedding = `[${embedding.map(num => num.toFixed(8)).join(',')}]`;
+      
+      // Insert the embedding into the database
+      const { error: insertError } = await supabase
+        .from('knowledge')
+        .update({ embedding: formattedEmbedding })
+        .eq('id', doc.id);
+      
+      if (insertError) {
+        console.error(`Error inserting embedding for document ${doc.id}:`, insertError);
+      } else {
+        console.log(`Successfully inserted embedding for document ${doc.id}`);
+      }
       
       // Sleep for a short time to avoid rate limits
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -117,9 +124,13 @@ async function generateEmbeddings() {
       console.error(`Error generating embedding for document ${doc.id}:`, err);
     }
   }
+  
+  console.log('Embedding creation complete');
 }
 
 // Execute the function
-generateEmbeddings().catch(error => {
+createEmbeddings().catch(error => {
   console.error('Unhandled error:', error);
+}).finally(() => {
+  console.log('Script execution complete');
 });

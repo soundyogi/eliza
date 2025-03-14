@@ -26,7 +26,8 @@
         "@types/node": "^22.13.5",
         "json5": "2.2.3",
         "ts-node": "^10.9.2",
-        "yargs": "17.7.2"
+        "yargs": "17.7.2",
+        "openai": "4.87.3"
     },
     "devDependencies": {
         "@jest/globals": "^29.7.0",
