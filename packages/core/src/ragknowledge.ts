@@ -47,7 +47,7 @@ export class RAGKnowledgeManager implements IRAGKnowledgeManager {
         this.knowledgeRoot = opts.knowledgeRoot;
     }
 
-    private readonly defaultRAGMatchThreshold = 0.85;
+    private readonly defaultRAGMatchThreshold = 0.5;
     private readonly defaultRAGMatchCount = 8;
 
     /**
@@ -354,6 +354,7 @@ export class RAGKnowledgeManager implements IRAGKnowledgeManager {
         match_count?: number;
         searchText?: string;
     }): Promise<RAGKnowledgeItem[]> {
+        console.log("searchKnowledge ragcore", params)
         const {
             match_threshold = this.defaultRAGMatchThreshold,
             match_count = this.defaultRAGMatchCount,

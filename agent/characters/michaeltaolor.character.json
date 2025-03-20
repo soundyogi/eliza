@@ -10,6 +10,7 @@
             "SUPABASE_URL": "https://ekcvueswdllhabupccoa.supabase.co",
             "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrY3Z1ZXN3ZGxsaGFidXBjY29hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyOTExOTMsImV4cCI6MjA1Njg2NzE5M30.ZyQ157FoOOcrtXoHQQPcrmYjEBJZ2F4Qhv8U-lG3Yhw"
         },
+        "ragKnowledge": true,
         "rag": {
             "enabled": true,
             "embeddingModel": "text-embedding-3-small",

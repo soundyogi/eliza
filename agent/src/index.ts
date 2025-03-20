@@ -94,7 +94,8 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
       console.log("Using agent ID:", runtime.agentId);
       
       // Generate embedding for test
-      const testEmbeddingArray = await embed(runtime, "Silver Haired Justin 99");
+      const text = "Silver Haired Justin 99";
+      const testEmbeddingArray = await embed(runtime, text);
       console.log("Generated embedding length:", testEmbeddingArray.length);
       
       
@@ -104,13 +105,12 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
         agentId: runtime.agentId,
         embedding: new Float32Array(testEmbeddingArray),
         match_threshold: 0.3, // Extremely low
-        match_count: 10,      // Very high
+        match_count: 10     // Very hight
       });
       
       console.log(`Direct search results: ${directResults.length} items found`);
       if (directResults.length > 0) {
         directResults.forEach((item, index) => {
-          console.log(item)
           console.log(`Result ${index+1}: similarity=${item.similarity}, text=${item.content.text.substring(0, 50)}...`);
         });
       } else {
@@ -129,7 +129,6 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
           
           console.log(`Found ${nullAgentResults.length} results with null agentId!`);
           nullAgentResults.forEach((item, index) => {
-            console.log(item)
             console.log(`Result ${index+1}: similarity=${item.similarity}, text=${item.content.text.substring(0, 50)}...`);
           });
         } 
@@ -139,7 +138,7 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
       console.error(error.stack);
     }
 
-    // debugKnowledgeSearch(runtime, "Silver Haired Justin 99");
+    //debugKnowledgeSearch(runtime, "Silver Haired Justin 99");
 
     return runtime;
   } catch (error) {
@@ -224,6 +223,9 @@ if (process.env.PREVENT_UNHANDLED_EXIT && parseBooleanFromText(process.env.PREVE
     console.error("unhandledRejection", err);
   });
 }
+
+
+
 
 async function debugKnowledgeSearch(runtime, testQuery) {
   const knowledgeManager = runtime.ragKnowledgeManager;
@@ -310,5 +312,3 @@ async function debugKnowledgeSearch(runtime, testQuery) {
     console.error('Error in direct database search:', error);
   }
 }
-
-export default debugKnowledgeSearch;
