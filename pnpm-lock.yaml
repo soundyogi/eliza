@@ -143,9 +143,9 @@ importers:
 
   agent:
     dependencies:
-      '@elizaos-plugins/adapter-supabase':
+      '@elizaos-plugins/sntnt-adapter-supabase':
         specifier: workspace:0.25.6-alpha.1
-        version: link:../packages/adapter-supabase
+        version: link:../packages/sntnt-adapter-supabase
       '@elizaos/client-direct':
         specifier: workspace:*
         version: link:../packages/client-direct
@@ -445,31 +445,6 @@ importers:
         specifier: ^3.0.2
         version: 3.0.5(@types/debug@4.1.12)(@types/node@22.13.10)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0)
 
-  packages/adapter-supabase:
-    dependencies:
-      '@elizaos/core':
-        specifier: workspace:^
-        version: link:../core
-      '@supabase/supabase-js':
-        specifier: 2.46.2
-        version: 2.46.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      uuid:
-        specifier: 10.0.0
-        version: 10.0.0
-      whatwg-url:
-        specifier: 7.1.0
-        version: 7.1.0
-    devDependencies:
-      '@vitest/coverage-v8':
-        specifier: ^3.0.2
-        version: 3.0.8(vitest@3.0.5(@types/debug@4.1.12)(@types/node@22.13.10)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0))
-      tsup:
-        specifier: 8.3.5
-        version: 8.3.5(@swc/core@1.11.9)(jiti@1.21.7)(postcss@8.5.3)(typescript@5.6.3)(yaml@2.7.0)
-      vitest:
-        specifier: ^3.0.2
-        version: 3.0.5(@types/debug@4.1.12)(@types/node@22.13.10)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0)
-
   packages/cli:
     dependencies:
       commander:
@@ -642,6 +617,31 @@ importers:
       tsup:
         specifier: 8.3.5
         version: 8.3.5(@swc/core@1.11.9)(jiti@1.21.7)(postcss@8.5.3)(typescript@5.6.3)(yaml@2.7.0)
+
+  packages/sntnt-adapter-supabase:
+    dependencies:
+      '@elizaos/core':
+        specifier: workspace:^
+        version: link:../core
+      '@supabase/supabase-js':
+        specifier: 2.46.2
+        version: 2.46.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      uuid:
+        specifier: 10.0.0
+        version: 10.0.0
+      whatwg-url:
+        specifier: 7.1.0
+        version: 7.1.0
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^3.0.2
+        version: 3.0.8(vitest@3.0.5(@types/debug@4.1.12)(@types/node@22.13.10)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0))
+      tsup:
+        specifier: 8.3.5
+        version: 8.3.5(@swc/core@1.11.9)(jiti@1.21.7)(postcss@8.5.3)(typescript@5.6.3)(yaml@2.7.0)
+      vitest:
+        specifier: ^3.0.2
+        version: 3.0.5(@types/debug@4.1.12)(@types/node@22.13.10)(jiti@1.21.7)(terser@5.39.0)(yaml@2.7.0)
 
 packages:
 
@@ -23314,7 +23314,7 @@ snapshots:
       array-differ: 3.0.0
       array-union: 2.1.0
       arrify: 2.0.1
-      minimatch: 3.0.5
+      minimatch: 3.1.2
 
   mute-stream@0.0.8: {}
 

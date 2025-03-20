@@ -2,7 +2,7 @@
     "name": "Michael Taolor",
     "clients": [],
     "plugins": [
-        "@elizaos-plugins/adapter-supabase"
+        "@elizaos-plugins/sntnt-adapter-supabase"
     ],
     "modelProvider": "anthropic",
     "settings": {
