@@ -47,8 +47,8 @@ export class RAGKnowledgeManager implements IRAGKnowledgeManager {
         this.knowledgeRoot = opts.knowledgeRoot;
     }
 
-    private readonly defaultRAGMatchThreshold = 0.5;
-    private readonly defaultRAGMatchCount = 8;
+    private readonly defaultRAGMatchThreshold = 0.33;
+    private readonly defaultRAGMatchCount = 10;
 
     /**
      * Common English stop words to filter out from query analysis
@@ -356,8 +356,8 @@ export class RAGKnowledgeManager implements IRAGKnowledgeManager {
     }): Promise<RAGKnowledgeItem[]> {
         console.log("searchKnowledge ragcore", params)
         const {
-            match_threshold = this.defaultRAGMatchThreshold,
-            match_count = this.defaultRAGMatchCount,
+            match_threshold = params.match_threshold || this.defaultRAGMatchThreshold,
+            match_count = params.match_count || this.defaultRAGMatchCount,
             embedding,
             searchText,
         } = params;

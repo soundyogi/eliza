@@ -13,6 +13,7 @@ import {
     type IAgentRuntime,
     type Adapter,
     elizaLogger,
+    embed
 } from "@elizaos/core";
 import { DatabaseAdapter } from "@elizaos/core";
 import { v4 as uuid } from "uuid";
@@ -880,13 +881,15 @@ export class SupabaseDatabaseAdapter extends DatabaseAdapter {
         console.log("3")
 
         // Convert Float32Array to array for Postgres vector
-        const embedding = Array.from(params.embedding);
+        const embedding  = await embed(RUNTIME, params.searchText);
+        const arrayEmbedding = new Float32Array(params.embedding);
+        const finalEmbedding = Array.from(arrayEmbedding);
 
         console.log("searchKnowledge supabase")
         console.log(params)
 
         const { data, error } = await this.supabase.rpc("search_knowledge", {
-            query_embedding: embedding,
+            query_embedding: finalEmbedding,
             query_agent_id: null,
             match_threshold: params.match_threshold,
             match_count: params.match_count,
@@ -910,11 +913,11 @@ export class SupabaseDatabaseAdapter extends DatabaseAdapter {
             embedding: row.embedding
                 ? new Float32Array(row.embedding)
                 : undefined,
-            createdAt: new Date(row.createdAt).getTime(),
+            createdAt: new Date(row.createdat).getTime(),
             similarity: row.similarity,
         }));
 
-        //console.log("searchKnowledge supabase results", results)
+        console.log("searchKnowledge supabase results", results)
         results.agentId = params.agentId;
 
         /*
@@ -1009,8 +1012,10 @@ export class SupabaseDatabaseAdapter extends DatabaseAdapter {
     }
 }
 
+let RUNTIME
 export const supabaseAdapter: Adapter = {
     init: (runtime: IAgentRuntime) => {
+        RUNTIME = runtime
         const supabaseUrl = runtime.getSetting("SUPABASE_URL");
         const supabaseAnonKey = runtime.getSetting("SUPABASE_ANON_KEY");
 

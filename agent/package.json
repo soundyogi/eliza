@@ -27,7 +27,12 @@
         "json5": "2.2.3",
         "ts-node": "^10.9.2",
         "yargs": "17.7.2",
-        "openai": "4.87.3"
+        "openai": "4.87.3",
+        "express": "^4.19.2",
+        "http-proxy-middleware": "^3.0.3",
+        "cors": "^2.8.5",
+        "express-rate-limit": "^7.5.0",
+        "helmet": "^8.1.0"
     },
     "devDependencies": {
         "@jest/globals": "^29.7.0",

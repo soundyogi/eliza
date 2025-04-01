@@ -29,6 +29,7 @@ import {
   handlePostCharacterLoaded
 } from "./characters/index.ts";
 import { checkPortAvailable, wait } from "./util.ts";
+import { startProxy } from "./proxy.ts";
 
 // Necessary for ES Modules:
 const __filename = fileURLToPath(import.meta.url);
@@ -94,7 +95,8 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
       console.log("Using agent ID:", runtime.agentId);
       
       // Generate embedding for test
-      const text = "Silver Haired Justin 99";
+      // const text = "Silver Haired Justin 99";
+      const text = "tell me everything about all the subnets you know"
       const testEmbeddingArray = await embed(runtime, text);
       console.log("Generated embedding length:", testEmbeddingArray.length);
       
@@ -105,7 +107,8 @@ async function startAgent(character: Character, directClient: DirectClient): Pro
         agentId: runtime.agentId,
         embedding: new Float32Array(testEmbeddingArray),
         match_threshold: 0.3, // Extremely low
-        match_count: 10     // Very hight
+        match_count: 10,     // Very hight
+        searchText: text
       });
       
       console.log(`Direct search results: ${directResults.length} items found`);
@@ -201,12 +204,15 @@ const startAgents = async () => {
   elizaLogger.info("Run `pnpm start:client` to start the client and visit the output URL to chat with your agents.");
 
   // Optionally start chat session if not running as daemon.
+  
   const isDaemonProcess = process.env.DAEMON_PROCESS === "true";
   if (!isDaemonProcess) {
     await wait(10000);
     console.log("Starting chat session...");
     startChatSession(characters)();
   }
+
+  startProxy();
 };
 
 startAgents().catch(error => {
@@ -227,6 +233,18 @@ if (process.env.PREVENT_UNHANDLED_EXIT && parseBooleanFromText(process.env.PREVE
 
 
 
+
+
+
+
+
+
+
+
+// DEBUG
+
+
+/*
 async function debugKnowledgeSearch(runtime, testQuery) {
   const knowledgeManager = runtime.ragKnowledgeManager;
 
@@ -312,3 +330,4 @@ async function debugKnowledgeSearch(runtime, testQuery) {
     console.error('Error in direct database search:', error);
   }
 }
+*/
